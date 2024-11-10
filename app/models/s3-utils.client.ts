@@ -1,6 +1,4 @@
-import path from "path";
 import invariant from "tiny-invariant";
-import { v4 as uuidv4 } from "uuid";
 
 declare global {
   interface Window {

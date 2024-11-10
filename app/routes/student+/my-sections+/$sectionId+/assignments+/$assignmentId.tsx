@@ -1,4 +1,14 @@
-import { Button, Card, LoadingOverlay, Text, Textarea } from "@mantine/core";
+import { 
+    Button, 
+    Card, 
+    LoadingOverlay, 
+    Text, 
+    Textarea,
+    Badge,
+    Group,
+    Divider,
+    Box
+} from "@mantine/core";
 import type { ActionArgs, LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
@@ -71,7 +81,6 @@ export async function loader({ params, request }: LoaderArgs) {
 		return redirect(`/student/my-sections/${sectionId}`);
 	}
 
-	// Generate signed URLs for any files
 	let assignmentFileUrl;
 	if (assignment.fileKey) {
 		assignmentFileUrl = await getS3Url(assignment.fileKey, {
@@ -230,7 +239,7 @@ export default function AssignmentView() {
 	}, [fetcher.data, fetcher.state, handleFileUpload, assignment.type]);
 
 	return (
-		<div className="min-h-screen p-4 relative">
+		<div className="min-h-screen p-4 relative max-w-5xl mx-auto">
 			<LoadingOverlay visible={isFileUploading} />
 
 			<PageHeading
@@ -240,143 +249,183 @@ export default function AssignmentView() {
 				to={`/student/my-sections/${assignment.section.id}`}
 			/>
 
-			<Card className="mt-4">
-				<Text size="lg" weight={500}>
-					Assignment Details
-				</Text>
-				<div className="mt-2 space-y-2">
-					<Text>
-						<strong>Type:</strong> {assignment.type}
-					</Text>
-					<Text>
-						<strong>Deadline:</strong>{" "}
-						{format(new Date(assignment.deadline), "PPp")}
-						{isOverdue && <span className="ml-2 text-red-500">(Overdue)</span>}
-					</Text>
-					<Text>
-						<strong>Description:</strong> {assignment.description}
-					</Text>
-					{assignment.type === "TEXT" && (
-						<Text>
-							<strong>Content:</strong> {assignment.textContent}
+			<div className="mt-6 grid gap-6">
+				<Card shadow="sm" p="lg" radius="md" withBorder>
+					<Group position="apart" mb="md">
+						<Text size="lg" weight={600} color="blue">
+							Assignment Details
 						</Text>
-					)}
-					{assignment.type === "FILE" && assignment.fileKey && (
-						<div className="flex items-center gap-2">
-							<Text>
-								<strong>File:</strong> {assignment.fileName}
-							</Text>
-							<Button
-								variant="light"
-								size="xs"
-								component="a"
-								href={assignmentFileUrl}
-								target="_blank"
-								download
-							>
-								Download
-							</Button>
-						</div>
-					)}
-				</div>
-			</Card>
-
-			{hasSubmission ? (
-				<Card className="mt-4">
-					<Text size="lg" weight={500}>
-						Your Submission
-					</Text>
-					<div className="mt-2 space-y-2">
-						<Text>
-							<strong>Submitted:</strong>{" "}
-							{format(new Date(submission.createdAt), "PPp")}
-						</Text>
-						{submission.grade && (
-							<Text>
-								<strong>Grade:</strong> {submission.grade}%
-							</Text>
+						<Badge 
+							size="lg"
+							color={isOverdue ? "red" : "green"}
+							variant="outline"
+						>
+							{isOverdue ? "Overdue" : "Open"}
+						</Badge>
+					</Group>
+					<Divider mb="md" />
+					<div className="grid gap-4">
+						<Box>
+							<Text size="sm" color="dimmed">Type</Text>
+							<Text weight={500}>{assignment.type}</Text>
+						</Box>
+						<Box>
+							<Text size="sm" color="dimmed">Deadline</Text>
+							<Text weight={500}>{format(new Date(assignment.deadline), "PPp")}</Text>
+						</Box>
+						<Box>
+							<Text size="sm" color="dimmed">Description</Text>
+							<Text>{assignment.description}</Text>
+						</Box>
+						{assignment.type === "TEXT" && (
+							<Box>
+								<Text size="sm" color="dimmed">Content</Text>
+								<Text>{assignment.textContent}</Text>
+							</Box>
 						)}
-						{submission.feedback && (
-							<Text>
-								<strong>Feedback:</strong> {submission.feedback}
-							</Text>
-						)}
-						{submission.textContent && (
-							<Text>
-								<strong>Your Answer:</strong> {submission.textContent}
-							</Text>
-						)}
-						{submission.fileKey && (
-							<div className="flex items-center gap-2">
-								<Text>
-									<strong>Your File:</strong> {submission.fileName}
-								</Text>
-								<Button
-									variant="light"
-									size="xs"
-									component="a"
-									href={submissionFileUrl}
-									target="_blank"
-									download
-								>
-									Download
-								</Button>
-							</div>
+						{assignment.type === "FILE" && assignment.fileKey && (
+							<Box>
+								<Text size="sm" color="dimmed">Assignment File</Text>
+								<Group spacing="xs">
+									<Text weight={500}>{assignment.fileName}</Text>
+									<Button
+										variant="light"
+										size="xs"
+										component="a"
+										href={assignmentFileUrl}
+										target="_blank"
+										download
+										leftIcon={<span>📎</span>}
+									>
+										Download
+									</Button>
+								</Group>
+							</Box>
 						)}
 					</div>
 				</Card>
-			) : (
-				<Card className="mt-4">
-					<Text size="lg" weight={500} className="mb-4">
-						Submit Assignment
-					</Text>
-					<fetcher.Form
-						method="post"
-						className="space-y-4"
-						onSubmit={(e) => {
-							e.preventDefault();
-							const formData = new FormData(e.currentTarget);
 
-							if (assignment.type === "FILE" && file && uploadedFileKey) {
-								const extension = mime.extension(file.type);
-								formData.append("bucket", window.ENV.AWS_BUCKET);
-								formData.append("key", uploadedFileKey);
-								formData.append("extension", extension || "");
-								formData.append("region", window.ENV.AWS_REGION);
-							}
+				{hasSubmission ? (
+					<Card shadow="sm" p="lg" radius="md" withBorder>
+						<Group position="apart" mb="md">
+							<Text size="lg" weight={600} color="blue">
+								Your Submission
+							</Text>
+							<Badge 
+								size="lg"
+								color={submission.grade ? "green" : "yellow"}
+								variant="outline"
+							>
+								{submission.grade ? `Grade: ${submission.grade}%` : "Not Graded"}
+							</Badge>
+						</Group>
+						<Divider mb="md" />
+						<div className="space-y-4">
+							<Box>
+								<Text size="sm" color="dimmed">Submitted At</Text>
+								<Text weight={500}>{format(new Date(submission.createdAt), "PPp")}</Text>
+							</Box>
+							
+							{submission.feedback && (
+								<Box>
+									<Text size="sm" color="dimmed">Feedback</Text>
+									<Card withBorder p="sm" radius="sm">
+										<Text>{submission.feedback}</Text>
+									</Card>
+								</Box>
+							)}
 
-							fetcher.submit(formData, { method: "POST" });
-						}}
-					>
-						{assignment.type === "TEXT" ? (
-							<Textarea
-								name="textContent"
-								label="Your Answer"
-								placeholder="Type your answer here"
-								required
-								minRows={5}
-							/>
-						) : (
-							<div className="border flex flex-col rounded-md p-4">
-								<input
-									type="file"
-									onChange={(e) => setFile(e.currentTarget.files?.[0] ?? null)}
-									required
-								/>
-							</div>
-						)}
-
-						<Button
-							type="submit"
-							variant="filled"
-							color="gray"
-							disabled={assignment.type === "FILE" && !file}
-						>
+							<Box>
+								<Text size="sm" color="dimmed">Your Submission</Text>
+								{submission.textContent ? (
+									<Card withBorder p="sm" radius="sm">
+										<Text>{submission.textContent}</Text>
+									</Card>
+								) : submission.fileKey ? (
+									<Button
+										variant="light"
+										component="a"
+										href={submissionFileUrl}
+										target="_blank"
+										download
+										leftIcon={<span>📎</span>}
+									>
+										Download Your Submission
+									</Button>
+								) : (
+									<Text color="dimmed" italic>No submission content</Text>
+								)}
+							</Box>
+						</div>
+					</Card>
+				) : (
+					<Card shadow="sm" p="lg" radius="md" withBorder>
+						<Text size="lg" weight={600} color="blue" mb="md">
 							Submit Assignment
-						</Button>
-					</fetcher.Form>
-				</Card>
-			)}
+						</Text>
+						<Divider mb="md" />
+						<fetcher.Form
+							method="post"
+							className="space-y-4"
+							onSubmit={(e) => {
+								e.preventDefault();
+								const formData = new FormData(e.currentTarget);
+
+								if (assignment.type === "FILE" && file && uploadedFileKey) {
+									const extension = mime.extension(file.type);
+									formData.append("bucket", window.ENV.AWS_BUCKET);
+									formData.append("key", uploadedFileKey);
+									formData.append("extension", extension || "");
+									formData.append("region", window.ENV.AWS_REGION);
+								}
+
+								fetcher.submit(formData, { method: "POST" });
+							}}
+						>
+							{assignment.type === "TEXT" ? (
+								<Box>
+									<Text size="sm" color="dimmed" mb={2}>Your Answer</Text>
+									<Textarea
+										name="textContent"
+										placeholder="Type your answer here"
+										required
+										minRows={5}
+										styles={{
+											input: {
+												backgroundColor: 'var(--mantine-color-gray-0)',
+											},
+										}}
+									/>
+								</Box>
+							) : (
+								<Box>
+									<Text size="sm" color="dimmed" mb={2}>Your File</Text>
+									<Card withBorder p="md" radius="sm">
+										<input
+											type="file"
+											onChange={(e) => setFile(e.currentTarget.files?.[0] ?? null)}
+											required
+											className="w-full"
+										/>
+									</Card>
+								</Box>
+							)}
+
+							<Group position="right" mt="xl">
+								<Button
+									type="submit"
+									size="md"
+									color="blue"
+									loading={fetcher.state === "submitting"}
+									disabled={assignment.type === "FILE" && !file}
+								>
+									Submit Assignment
+								</Button>
+							</Group>
+						</fetcher.Form>
+					</Card>
+				)}
+			</div>
 		</div>
 	);
 }
