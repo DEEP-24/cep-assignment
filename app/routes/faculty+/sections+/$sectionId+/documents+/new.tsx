@@ -122,27 +122,37 @@ export default function SectionDetails() {
 		if (!file || !uploadedDocumentKey) return;
 
 		setIsFileUploading(true);
-		const data = await axios.get<{
-			signedUrl: string;
-		}>(`/resources/upload-s3-object?key=${uploadedDocumentKey}`);
+		try {
+			const data = await axios.get<{
+				signedUrl: string;
+			}>(`/resources/upload-s3-object?key=${uploadedDocumentKey}`);
 
-		const uploadUrl = data.data.signedUrl;
+			const uploadUrl = data.data.signedUrl;
 
-		const response = await axios.put(uploadUrl, file);
-		if (response.status === 200) {
-			const url = getS3Url(uploadedDocumentKey);
-			console.log(url);
-			toast.success("Document uploaded successfully");
-			navigate(`/faculty/sections/${sectionId}`);
-		} else {
-			// TODO: Delete the created document from the database
-			// Use `useSubmit()` to do this
-			toast.error("Error uploading document");
+			const response = await axios.put(uploadUrl, file, {
+				headers: {
+					'Content-Type': file.type,
+				}
+			});
+			
+			if (response.status === 200) {
+				const url = getS3Url(uploadedDocumentKey, {
+					bucket: "s3cep",
+					region: "us-west-2",
+				});
+				console.log(url);
+				toast.success("Document uploaded successfully");
+				navigate(`/faculty/sections/${sectionId}`);
+			} else {
+				toast.error("Error uploading document");
+			}
+		} catch (error) {
+			console.error("Upload error:", error);
+			toast.error("Error uploading document: " + (error as Error).message);
+		} finally {
+			setIsFileUploading(false);
 		}
-
-		setIsFileUploading(false);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [file, navigate, uploadedDocumentKey]);
+	}, [file, navigate, sectionId, uploadedDocumentKey]);
 
 	React.useEffect(() => {
 		if (fetcher.state !== "idle") return;

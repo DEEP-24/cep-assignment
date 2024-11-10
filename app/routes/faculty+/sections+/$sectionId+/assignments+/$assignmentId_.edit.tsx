@@ -102,9 +102,7 @@ export async function action({ request, params }: ActionArgs) {
 
 		// If it's a file assignment, delete the file from S3
 		if (assignment.fileKey) {
-			await deleteS3Object({
-				key: assignment.fileKey,
-			});
+			await deleteS3Object({ key: assignment.fileKey });
 		}
 
 		await prisma.assignment.delete({

@@ -9,8 +9,7 @@ export const loader = async ({ request }: DataFunctionArgs) => {
   const key = searchParams.get("key")
   if (!key) return json({ error: "No key provided" })
 
-  const encodedKey = encodeURIComponent(key)
-  const signedUrl = await getS3SignedUrl(encodedKey)
+  const signedUrl = await getS3SignedUrl(key)
 
   return json({ signedUrl })
 }

@@ -2,7 +2,7 @@ import { PaperClipIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { Button } from "@mantine/core";
 import type { LoaderArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Link, NavLink, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { ClientOnly } from "remix-utils";
 import PageHeading from "~/components/page-heading";
 import { TailwindContainer } from "~/components/tailwind-container";
@@ -38,6 +38,10 @@ export async function loader({ params }: LoaderArgs) {
 		},
 	});
 
+	if (!section) {
+		return redirect("/faculty/sections");
+	}
+
 	return json({ section });
 }
 
@@ -50,32 +54,40 @@ function SectionContent() {
 
 	return (
 		<TailwindContainer className="rounded-md bg-white">
-			<div className=" px-4 py-10 sm:px-6 lg:px-8">
+			<div className="px-4 py-10 sm:px-6 lg:px-8">
 				<PageHeading
 					title="Section Details"
 					subtitle="View section details"
 					showBackButton
-					to="/admin/sections"
+					to="/faculty/sections"
 					rightSection={
 						<div className="flex space-x-6">
-							<NavLink
-								to={`/faculty/sections/${section?.id}/documents/new`}
-								className="block rounded-md bg-gray-900 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+							<Link
+								to={`/faculty/sections/${section.id}/documents/new`}
+								className="block"
 							>
-								<div className="flex items-center">
+								<Button
+									className="flex items-center"
+									variant="filled"
+									color="dark"
+								>
 									<PlusIcon className="h-4 w-4" />
 									<span className="ml-2">Upload Document</span>
-								</div>
-							</NavLink>
-							<NavLink
-								to={`/faculty/sections/${section?.id}/assignments/new`}
-								className="block rounded-md bg-gray-900 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+								</Button>
+							</Link>
+							<Link
+								to={`/faculty/sections/${section.id}/assignments/new`}
+								className="block"
 							>
-								<div className="flex items-center">
+								<Button
+									className="flex items-center"
+									variant="filled"
+									color="dark"
+								>
 									<PlusIcon className="h-4 w-4" />
 									<span className="ml-2">Add Assignment</span>
-								</div>
-							</NavLink>
+								</Button>
+							</Link>
 						</div>
 					}
 				/>

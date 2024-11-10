@@ -9,10 +9,9 @@ import { prisma } from "~/lib/db.server"
 import { requireUserId } from "~/session.server"
 import { formatTime } from "~/utils"
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export async function loader({ request }: LoaderArgs) {
   const facultyId = await requireUserId(request)
-  //get those sections which are taught by this faculty
   const sections = await prisma.section.findMany({
     where: {
       facultyId: facultyId,

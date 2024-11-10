@@ -30,6 +30,7 @@ export function getUniqueS3Key(fileName: string, extension?: string) {
  * Generates a URL for accessing an object in an S3 bucket.
  */
 export function getS3Url(key: string, options: { bucket: string; region: string }) {
-  // For client-side, we'll generate a simple URL
-  return `https://${options.bucket}.s3.${options.region}.amazonaws.com/${key}`;
+  // Encode the key only once when generating the final URL
+  const encodedKey = encodeURIComponent(key);
+  return `https://${options.bucket}.s3.${options.region}.amazonaws.com/${encodedKey}`;
 }

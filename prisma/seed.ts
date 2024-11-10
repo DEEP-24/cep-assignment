@@ -4,14 +4,19 @@ import bcrypt from "bcryptjs"
 const prisma = new PrismaClient()
 
 async function seed() {
-  await prisma.admin.deleteMany()
+  await prisma.submission.deleteMany()
+  await prisma.assignment.deleteMany()
+  await prisma.document.deleteMany()
+  await prisma.timeSlot.deleteMany()
+  await prisma.enrollment.deleteMany()
+  await prisma.section.deleteMany()
+  await prisma.course.deleteMany()
+  await prisma.room.deleteMany()
   await prisma.faculty.deleteMany()
   await prisma.student.deleteMany()
-  await prisma.department.deleteMany()
   await prisma.semester.deleteMany()
-  await prisma.room.deleteMany()
-  await prisma.course.deleteMany()
-  await prisma.enrollment.deleteMany()
+  await prisma.department.deleteMany()
+  await prisma.admin.deleteMany()
 
   const hashedPassword = await bcrypt.hash("password", 10)
 
@@ -73,6 +78,22 @@ async function seed() {
       maxCapacity: 50,
     },
   })
+
+  const room = await prisma.room.findFirst()
+  const course = await prisma.course.findFirst()
+  const faculty = await prisma.faculty.findFirst()
+
+  if (room && course && faculty) {
+    await prisma.section.create({
+      data: {
+        name: "Section A",
+        code: "CSE4001-A",
+        roomId: room.id,
+        courseId: course.id,
+        facultyId: faculty.id,
+      },
+    })
+  }
 
   console.log(`Database has been seeded. 🌱`)
 }

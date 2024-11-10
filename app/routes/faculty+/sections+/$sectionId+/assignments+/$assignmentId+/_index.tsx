@@ -45,8 +45,8 @@ export async function loader({ params }: LoaderArgs) {
     let assignmentUrl;
     if(assignment.fileKey) {
         assignmentUrl = await getS3Url(assignment.fileKey, {
-            bucket: assignment.fileBucket!,
-            region: assignment.fileRegion!,
+            bucket: "s3cep",
+            region: "us-west-2",
         });
     }
 
